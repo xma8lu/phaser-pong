@@ -3,15 +3,21 @@ import Phaser from "phaser";
 export default class Game extends Phaser.Scene {
   init() {
     this.paddleRightVelocity = new Phaser.Math.Vector2(0, 0);
+
+    this.leftScore = 0;
+    this.rightScore = 0;
   }
   preload() {}
   create() {
+    this.physics.world.setBounds(-100, 0, 1000, 600);
+
     this.ball = this.add.circle(400, 300, 10, 0xffffff, 1);
     this.physics.add.existing(this.ball);
 
     this.ball.body.setBounce(1, 1);
     this.ball.body.setCollideWorldBounds(true, 1, 1);
-    this.ball.body.setVelocity(200, 200);
+
+    this.resetBall();
 
     this.paddleLeft = this.add.rectangle(30, 300, 30, 100, 0xffffff);
     this.physics.add.existing(this.paddleLeft, true);
@@ -24,6 +30,18 @@ export default class Game extends Phaser.Scene {
     this.physics.add.collider(this.paddleRight, this.ball);
 
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    const scoreStyle = {
+      fontSize: 48,
+    };
+
+    this.leftScoreLabel = this.add
+      .text(300, 150, "0", scoreStyle)
+      .setOrigin(0.5, 0.5);
+
+    this.rightScoreLabel = this.add
+      .text(500, 450, "0", scoreStyle)
+      .setOrigin(0.5, 0.5);
   }
 
   update() {
@@ -54,5 +72,30 @@ export default class Game extends Phaser.Scene {
     }
     this.paddleRight.y += this.paddleRightVelocity.y;
     this.paddleRight.body.updateFromGameObject();
+
+    if (this.ball.x < -30) {
+      this.incrementRightScore();
+      this.resetBall();
+    } else if (this.ball.x > 830) {
+      this.incrementLeftScore();
+      this.resetBall();
+    }
+  }
+
+  incrementLeftScore() {
+    this.leftScore += 1;
+    this.leftScoreLabel.text = this.leftScore;
+  }
+
+  incrementRightScore() {
+    this.rightScore += 1;
+    this.rightScoreLabel.text = this.rightScore;
+  }
+  resetBall() {
+    this.ball.setPosition(400, 300);
+    const angle = Phaser.Math.Between(0, 360);
+    const vec = this.physics.velocityFromAngle(angle, 200);
+
+    this.ball.body.setVelocity(vec.x, vec.y);
   }
 }
