@@ -1,6 +1,10 @@
 import Phaser from "phaser";
 import WebFontFile from "./webFontFile";
 
+import * as Colors from "~/consts/Colors";
+
+import { GameBackground } from "../consts/SceneKeys";
+
 export default class Game extends Phaser.Scene {
   init() {
     this.paddleRightVelocity = new Phaser.Math.Vector2(0, 0);
@@ -13,25 +17,27 @@ export default class Game extends Phaser.Scene {
     this.load.addFile(fonts);
   }
   create() {
-    this.scene.run("game-background");
-    this.scene.sendToBack("game-background");
+    this.scene.run(GameBackground);
+    this.scene.sendToBack(GameBackground);
 
     this.physics.world.setBounds(-100, 0, 1000, 600);
 
-    this.ball = this.add.circle(400, 300, 10, 0xffffff, 1);
+    this.ball = this.add.circle(400, 300, 10, Colors.White, 1);
     this.physics.add.existing(this.ball);
-
+    this.ball.body.setCircle(10);
     this.ball.body.setBounce(1, 1);
     this.ball.body.setCollideWorldBounds(true, 1, 1);
 
-    this.resetBall();
+    this.time.delayedCall(1000, () => {
+      this.resetBall();
+    });
 
-    this.paddleLeft = this.add.rectangle(30, 300, 30, 100, 0xffffff);
+    this.paddleLeft = this.add.rectangle(30, 300, 30, 100, Colors.White);
     this.physics.add.existing(this.paddleLeft, true);
 
     this.physics.add.collider(this.paddleLeft, this.ball);
 
-    this.paddleRight = this.add.rectangle(770, 300, 30, 100, 0xffffff);
+    this.paddleRight = this.add.rectangle(770, 300, 30, 100, Colors.White);
     this.physics.add.existing(this.paddleRight, true);
 
     this.physics.add.collider(this.paddleRight, this.ball);
@@ -53,6 +59,14 @@ export default class Game extends Phaser.Scene {
   }
 
   update() {
+    this.processPlayerInput();
+
+    this.updateOpp();
+
+    this.checkScore();
+  }
+
+  processPlayerInput() {
     const body = this.paddleLeft.body;
     if (this.cursors.up.isDown) {
       this.paddleLeft.y -= 10;
@@ -61,7 +75,9 @@ export default class Game extends Phaser.Scene {
       this.paddleLeft.y += 10;
       body.updateFromGameObject();
     }
+  }
 
+  updateOpp() {
     const diff = this.ball.y - this.paddleRight.y;
     if (Math.abs(diff) < 10) {
       return;
@@ -80,7 +96,9 @@ export default class Game extends Phaser.Scene {
     }
     this.paddleRight.y += this.paddleRightVelocity.y;
     this.paddleRight.body.updateFromGameObject();
+  }
 
+  checkScore() {
     if (this.ball.x < -30) {
       this.incrementRightScore();
       this.resetBall();
