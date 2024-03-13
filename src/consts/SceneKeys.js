@@ -1,5 +1,5 @@
 const TitleScreen = "titlescreen";
 const Game = "game";
 const GameBackground = "game-background";
-
-export { TitleScreen, Game, GameBackground };
+const GameOver = "game-over";
+export { TitleScreen, Game, GameBackground, GameOver };
